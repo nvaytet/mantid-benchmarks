@@ -16,12 +16,15 @@ def recWidthDct(algHistory):
     recWidthDctInt(algHistory, dct, "root", countList)
     return dct;
 
-def extractChilds(dctTreeOrig):
-    dctTree = copy.deepcopy(dctTreeOrig)
+def extractChildsInt(dctTree):
     for key, val in dctTree.items():
         for chKey, chVal in val[1].items():
             val[0] -= chVal[0]
-        extractChilds(val[1])
+        extractChildsInt(val[1])
+
+def extractChilds(dctTreeOrig): 
+    dctTree = copy.deepcopy(dctTreeOrig)
+    extractChildsInt(dctTree)
     return dctTree
 
 def toDotInt(tree, dctTree, parentName):

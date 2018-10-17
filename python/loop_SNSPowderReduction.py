@@ -18,17 +18,16 @@ char_file = "PG3_characterization_2011_08_31-HR.txt"
 # filesize_list = [1,2,4,8,16]
 # nthreads_list = [1,2,4,8,12,16,20,24]
 filesize_list = [1]
-nthreads_list = [1]
+nthreads_list = [1,2]
 
 for i in filesize_list:
     for j in nthreads_list:
 
-        # from mantid import config
         mantid.config['datasearch.directories'] = datadir + "/data_fact%03d" % i
         mantid.config['MultiThreaded.MaxCores'] = str(j)
 
         SNSPowderReduction(Filename=run_file,
-                           PreserveEvents=False,
+                           PreserveEvents=True,
                            CalibrationFile=cal_file,
                            CharacterizationRunsFile=char_file,
                            LowResRef=15000, RemovePromptPulseWidth=50,
@@ -42,6 +41,6 @@ for i in filesize_list:
         h = w.getHistory()
         ah = h.getAlgorithmHistories()
         fname = "fact_%03d-nthreads_%03d"%(i,j)
-        for i in ah:
-            t = tree_walk.Tree(i)
+        for k in ah:
+            t = tree_walk.Tree(k)
             t.view(fname)

@@ -23,9 +23,13 @@ nthreads_list = [1,2]
 for i in filesize_list:
     for j in nthreads_list:
 
+        # Start fresh
+        mantid.AnalysisDataService.clear()
+        # Set-up config
         mantid.config['datasearch.directories'] = datadir + "/data_fact%03d" % i
         mantid.config['MultiThreaded.MaxCores'] = str(j)
 
+        # Run Powder reduction
         SNSPowderReduction(Filename=run_file,
                            PreserveEvents=True,
                            CalibrationFile=cal_file,
@@ -35,8 +39,8 @@ for i in filesize_list:
                            SaveAs="gsas and fullprof and pdfgetn", OutputDirectory=cwd+'/results',
                            FinalDataUnits="dSpacing")
 
+        # Gather history and write it to file
         names = mantid.api.AnalysisDataService.getObjectNames()
-
         w = mantid.api.AnalysisDataService['PG3_77777']
         h = w.getHistory()
         ah = h.getAlgorithmHistories()

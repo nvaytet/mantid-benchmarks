@@ -18,7 +18,7 @@ char_file = "PG3_characterization_2011_08_31-HR.txt"
 # filesize_list = [1,2,4,8,16]
 # nthreads_list = [1,2,4,8,12,16,20,24]
 filesize_list = [1]
-nthreads_list = [1,2]
+nthreads_list = [1]
 
 for i in filesize_list:
     for j in nthreads_list:

@@ -27,17 +27,20 @@ def extractChilds(dctTreeOrig):
     extractChildsInt(dctTree)
     return dctTree
 
-def toDotInt(tree, dctTree, parentName):
+def toDotInt(tree, dctTree, parentName, cond):
     for key, val in dctTree.items():
         if key != parentName:
-            tree.node(key, key + '\n' + str(val[0]))
+            if cond(val[0]):
+                tree.node(key, key + '\n' + str(val[0]), style='filled',fillcolor='red')
+            else:
+                tree.node(key, key + '\n' + str(val[0]))
             tree.edge(key, parentName)
-        toDotInt(tree, val[1], key)
+        toDotInt(tree, val[1], key, cond)
     
-def toDot(dctTree):
+def toDot(dctTree, cond=lambda x: False):
     tree = Graph(comment='History tree')
     tree.node("root", "root")
-    toDotInt(tree, dctTree, "root")
+    toDotInt(tree, dctTree, "root", cond)
     return tree
 
 def extractElement(dctTreeOrig, name, num):

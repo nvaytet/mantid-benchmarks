@@ -31,9 +31,9 @@ class Tree():
         self.maxlevel = 0
         self.history = history
         self.raw_sum = 0.0
-        level = 0;
+        level = 1;
         for h in self.history.getChildHistories():
-            self.elements.append(Element(algorithm=h, level=0))
+            self.elements.append(Element(algorithm=h, level=level))
 
         loop=True
         while(loop):
@@ -66,9 +66,9 @@ class Tree():
 
     def view(self,fname=None):
 
-        header = self.history.name() + ": Total duration = " + \
-                 str(self.history.executionDuration()) + " , Raw sum = " + \
-                 str(self.raw_sum)
+        header = self.history.name() + " 0 " + \
+                 str(self.history.executionDuration()) + " " + \
+                 str(self.history.executionDuration() - self.raw_sum)
         if fname:
             f = open(fname,'w')
             f.write(header+'\n')
@@ -77,6 +77,6 @@ class Tree():
             print(header)
 
         for e in self.elements:
-            if e.level == 0:
+            if e.level == 1:
                 recursive_print(e, f)
         return

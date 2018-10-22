@@ -75,6 +75,8 @@ def applyElementwise(dctTreeOrig, dctTree2, func):
     lst1 = listWidthOrder(dctTree1)
     lst2 = listWidthOrder(dctTree2)
     for i in range(len(lst1)):
+        if lst1[i][0] != lst2[i][0]:
+            raise  RuntimeError("Trees structure is not the same.")
         lst1[i][1][0] = func(lst1[i][1][0], lst2[i][1][0])
     return dctTree1
 

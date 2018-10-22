@@ -56,7 +56,7 @@ for i in filesize_list:
 
         # Load the sample workspaces
         load_alg = AlgorithmManager.createUnmanaged("SANSLoad")
-        load_alg.setChild(True)
+        load_alg.setChild(False)
         load_alg.initialize()
 
         state_dict = state.property_manager

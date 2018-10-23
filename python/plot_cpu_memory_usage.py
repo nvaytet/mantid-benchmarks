@@ -6,7 +6,6 @@ import numpy as np
 import sys
 
 from timestamp_tree import *
-import dictionary_tree as dtree
 from generic_tree import Node
 
 
@@ -34,11 +33,11 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
 # Read in algorithm timing log and build tree
 header, records = fromFile(sys.argv[2])
 records = [x for x in records if x["finish"] - x["start"] > 100000000]
-trees = toTrees(records)
+tree = toTrees(records)[-1]
 header = int(header.split(':')[1])
 # Find maximum level
 lmax = 0
-for node in trees[1].to_list():
+for node in tree.to_list():
     lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
@@ -64,7 +63,7 @@ cNorm = mpc.Normalize(vmin=0,vmax=lmax)
 scalarMap = mpm.ScalarMappable(norm=cNorm,cmap=cm)
 
 # Plot algorithm timings
-for node in trees[1].to_list():
+for node in tree.to_list():
     plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
 
 # Finish off and save figure

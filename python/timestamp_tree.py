@@ -4,14 +4,18 @@ from dictionary_tree import *
 
 def parseLine(line):
     res = re.split(">>|:|<>", line)
-    return {"thread_id" : res[0], "name" : res[1], "start" : float(res[2]), "finish" : float(res[3])}
+    return {"thread_id" : res[0], "name" : res[1], "start" : int(res[2]), "finish" : int(res[3])}
 
 def fromFile(fileName):
     res = []
+    header = ""
     with open(fileName) as inp:
         for line in inp:
+            if "START_POINT:" in line:
+                header = line.strip("\n")
+                continue
             res.append(parseLine(line))
-    return res
+    return header, res
 
 def cmp_to_key(mycmp):
     'Convert a cmp= function into a key= function'
@@ -67,6 +71,6 @@ def to_dct_tree(node):
     return dctT
 
 def loadFile(fileName):
-    records = fromFile(fileName)
+    header, records = fromFile(fileName)
     trees = toTrees(records)
-    return to_dct_tree(trees[0])
+    return header, to_dct_tree(trees[0])

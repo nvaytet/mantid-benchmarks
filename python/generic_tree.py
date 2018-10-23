@@ -3,6 +3,7 @@ from graphviz import Graph
 class Node():
     def __init__(self, info=[]):
         self.parent = None
+        self.level = 0
         self.children = []
         self.info = info
     
@@ -36,6 +37,7 @@ class Node():
     # TODO apply different functions
     def append(self, tree):
         tree.parent = self
+        tree.level = self.level + 1
         self.children.append(tree)
     
     def find_all(self, cond):

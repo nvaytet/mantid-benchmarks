@@ -38,13 +38,13 @@ for j in nthreads_list:
                        SaveAs="gsas and fullprof and pdfgetn", OutputDirectory=cwd+'/results',
                        FinalDataUnits="dSpacing")
 
-    # Gather history and write it to file
-    # names = AnalysisDataService.getObjectNames()
-    w = AnalysisDataService['PG3_77777']
-    h = w.getHistory()
-    ah = h.getAlgorithmHistories()
-    # fname = "fact_%03d-nthreads_%03d"%(i,j)
-    fname = "SNSPowderReduction_nthreads_%03d"%j
-    for k in ah:
-        t = tree_walk.Tree(k)
-        t.view(fname)
+    # # Gather history and write it to file
+    # # names = AnalysisDataService.getObjectNames()
+    # w = AnalysisDataService['PG3_77777']
+    # h = w.getHistory()
+    # ah = h.getAlgorithmHistories()
+    # # fname = "fact_%03d-nthreads_%03d"%(i,j)
+    # fname = "SNSPowderReduction_nthreads_%03d"%j
+    # for k in ah:
+    #     t = tree_walk.Tree(k)
+    #     t.view(fname)

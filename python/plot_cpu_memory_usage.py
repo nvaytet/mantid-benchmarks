@@ -1,55 +1,76 @@
 import matplotlib.pyplot as plt
+import matplotlib.colors as mpc
+import matplotlib.cm as mpm
+
 import numpy as np
+import sys
 
-data = np.loadtxt('cpu_activity_001thread.txt')
-
-fin = open('algotimeregister.out','r')
-alg_name = []
-alg_start = []
-alg_end = []
-for line in fin.readlines():
-    sl = line.split(':')
-    alg_name.append(sl[0].split(">")[2])
-    alg_start.append(float(sl[1].split("<")[0])/1000.0)
-    alg_end.append(float(sl[1].split(">")[1])/1000.0)
+from timestamp_tree import *
+import dictionary_tree as dtree
+from generic_tree import Node
 
 
+def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
+
+    colorVal = scalarMap.to_rgba(node.level)
+    y1 = 100.0
+    size = 200.0
+    spacing = 700.0
+
+    y2 = y1 - (lmax-node.level+1)*spacing
+    y3 = y2 - size
+
+    x1 = ((node.info[1] + header) / 1.0e9) - sync_time
+    x2 = ((node.info[2] + header) / 1.0e9) - sync_time
+    x3 = 0.5 * (x1 + x2)
+
+    ax.plot([x1, x1], [y1, y2], clip_on=False, color=colorVal, lw=1)
+    ax.plot([x2, x2], [y1, y2], clip_on=False, color=colorVal, lw=1)
+    ax.plot([x1, x2], [y2, y2], clip_on=False, color=colorVal, lw=1)
+    ax.plot([x3, x3], [y2, y3], clip_on=False, color=colorVal, lw=1)
+    ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
+# Read in algorithm timing log and build tree
+header, records = fromFile(sys.argv[2])
+records = [x for x in records if x["finish"] - x["start"] > 100000000]
+trees = toTrees(records)
+header = int(header.split(':')[1])
+# Find maximum level
+lmax = 0
+for node in trees[1].to_list():
+    lmax = max(node.level,lmax)
 
+# Read in CPU and memory activity log
+data = np.loadtxt(sys.argv[1])
+# This is the synchronization time
+sync_time = data[0,0]
 
-
-
-
+# Set up figure
 fig = plt.figure()
-ratio = 0.3
-sizex = 30.0
+ratio = 0.15
+sizex = 60.0
 fig.set_size_inches(sizex,ratio*sizex)
 ax1 = fig.add_subplot(111)
-# ax2 = fig.add_subplot(212)
 ax2 = ax1.twinx()
 
-ax1.plot(data[:,0],data[:,1], color='b')
-ax2.plot(data[:,0],data[:,2]/1000.0, color='r')
+# Plot cpu and memory usage
+ax1.plot(data[:,0]-sync_time,data[:,1], color='k')
+ax2.plot(data[:,0]-sync_time,data[:,2]/1000.0, color='magenta')
 
-y1 = 100.0
-y2 = -500.0
-y3 = -700.0
-step = 200.0
-colors = ['k','cyan']
-k = -1
-for i in range(len(alg_name)):
-    if alg_end[i] - alg_start[i] > 1:
-        k += 1
-        ax1.plot([alg_start[i],alg_start[i]],[y1-k*step,y2-k*step], clip_on=False,color=colors[i%2],lw=1)
-        ax1.plot([alg_end[i],alg_end[i]],[y1-k*step,y2-k*step], clip_on=False,color=colors[i%2],lw=1)
-        ax1.plot([alg_start[i],alg_end[i]],[y2-k*step,y2-k*step], clip_on=False,color=colors[i%2],lw=1)
-        ax1.plot([0.5*(alg_start[i]+alg_end[i]),0.5*(alg_start[i]+alg_end[i])],[y2-k*step,y3-k*step], clip_on=False,color=colors[i%2],lw=1)
-        ax1.text(0.5*(alg_start[i]+alg_end[i]),y3-k*step, alg_name[i],rotation=90.0,ha='center',va='top',color=colors[i%2])
+# Load colormap
+cm = plt.get_cmap('brg')
+cNorm = mpc.Normalize(vmin=0,vmax=lmax)
+scalarMap = mpm.ScalarMappable(norm=cNorm,cmap=cm)
 
+# Plot algorithm timings
+for node in trees[1].to_list():
+    plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
+
+# Finish off and save figure
 ax1.set_xlabel("Time (s)")
-ax1.set_ylabel("CPU (%)", color='b')
-ax2.set_ylabel("Memory (GB)", color='r')
+ax1.set_ylabel("CPU (%)", color='k')
+ax2.set_ylabel("Memory (GB)", color='magenta')
 ax1.set_ylim([-100.0,2500.0])
-
-fig.savefig("cpu_memory_usage.pdf", bbox_inches="tight")
+ax1.grid(color='lightgrey', linestyle='dotted')
+fig.savefig("graph.pdf", bbox_inches="tight")

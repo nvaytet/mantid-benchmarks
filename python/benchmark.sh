@@ -1,9 +1,7 @@
 #!/bin/bash
 
-SCRIPT="run_SNSPowderReduction.py";
+SCRIPT="SNSPowderReduction.py";
 NTHREADS=( 1 2 4 8 12 16 20 24 );
-# NTHREADS=( 1 );
-
 
 for ((i=0; i<${#NTHREADS[@]}; i++ )); do
 
@@ -12,11 +10,9 @@ for ((i=0; i<${#NTHREADS[@]}; i++ )); do
   cp $CONFIG $CONFIG.backup;
   echo "MultiThreaded.MaxCores=${NTHREADS[i]}" >> $CONFIG;
 
-  python ${SCRIPT} ${NTHREADS[i]} & python psrecord.py --log activity.txt --interval 0.01 --include-children --absolute $!
-  mv algotimeregister.out algotimeregister_${NTHREADS[i]}.out;
-  mv activity.txt activity_${NTHREADS[i]}.txt;
-  python3 plot_cpu_memory_usage.py activity_${NTHREADS[i]}.txt algotimeregister_${NTHREADS[i]}.out;
-  mv graph.pdf ${SCRIPT/.py/}_${NTHREADS[i]}.pdf;
+  python ${SCRIPT} ${NTHREADS[i]} & python psrecord.py --log ${SCRIPT/.py/}_${NTHREADS[i]}.cpu --interval 0.01 --include-children --absolute $!
+  mv algotimeregister.out ${SCRIPT/.py/}_${NTHREADS[i]}.out;
+  python3 plot_cpu_memory_usage.py ${SCRIPT/.py/}_${NTHREADS[i]}.cpu ${SCRIPT/.py/}_${NTHREADS[i]}.out ${SCRIPT/.py/}_${NTHREADS[i]}.pdf;
 
   # Restore config file
   cp ${CONFIG}.backup $CONFIG;

@@ -43,17 +43,15 @@ def toTrees(records):
     heads = []
     counter = dict()
     for rec in recs:
-        if rec["name"] in counter.keys():
-            counter[rec["name"]] += 1
-        else:
-            counter[rec["name"]] = 1
-    for rec in recs:
         head = None
         for hd in heads:
             if rec["start"] >= hd.info[1] and rec["finish"] <= hd.info[2]:
                 head = hd
                 break
-
+        if rec["name"] in counter.keys():
+            counter[rec["name"]] += 1
+        else:
+            counter[rec["name"]] = 1
         if head is None:
             heads.append(rec_to_node(rec, counter[rec["name"]]))
         else:

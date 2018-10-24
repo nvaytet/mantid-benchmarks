@@ -7,7 +7,7 @@ from mantid.simpleapi import SNSPowderReduction
 from mantid import config, AnalysisDataService
 
 config['datasearch.searcharchive'] = 'off'
-config['datasearch.directories'] = wfc.datadir + "/data_fact016"# % i
+config['datasearch.directories'] = wfc.datadirs["SNSPowderReduction"] + "/data_fact016"# % i
 
 # Adopted from SNSPowderRedux.PG3Analysis
 run_file  = "PG3_77777_event.nxs"

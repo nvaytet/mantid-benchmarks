@@ -58,18 +58,3 @@ def toTrees(records):
     return heads
 
 
-def to_dct_tree(node):
-    def to_dct_tree_int(node, dct, parentName):
-        for nd in node.children:
-            name = nd.info[0]
-            dur = nd.info[2] - nd.info[1]
-            dct[parentName][1].update({name : [dur, {}]})
-            to_dct_tree_int(nd, dct[parentName][1], name)
-    dctT = {node.info[0] : [node.info[2] - node.info[1], {}]}
-    to_dct_tree_int(node, dctT, node.info[0])
-    return dctT
-
-def loadFile(fileName):
-    header, records = fromFile(fileName)
-    trees = toTrees(records)
-    return header, to_dct_tree(trees[0])

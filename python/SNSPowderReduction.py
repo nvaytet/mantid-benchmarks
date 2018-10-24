@@ -1,14 +1,13 @@
 import os
 cwd = os.getcwd()
-
+import workflow_config as wfc
+import sys
+sys.path.extend(wfc.sys_path_ext)
 from mantid.simpleapi import SNSPowderReduction
 from mantid import config, AnalysisDataService
 
-# Set-up config
-datadir = "/home/nvaytet/aaa_work/code/mantid/sources/clean/build/ExternalData/Testing/Data/SystemTest"
-datadir += ";/media/nvaytet/30c9d25c-0aba-427f-b8ea-3079e881dfce/benchmarks_data/SNSPowderReduction_data"
 config['datasearch.searcharchive'] = 'off'
-config['datasearch.directories'] = datadir + "/data_fact016"# % i
+config['datasearch.directories'] = wfc.datadir + "/data_fact016"# % i
 
 # Adopted from SNSPowderRedux.PG3Analysis
 run_file  = "PG3_77777_event.nxs"

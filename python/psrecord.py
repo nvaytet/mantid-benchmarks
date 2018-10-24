@@ -45,6 +45,12 @@ def get_memory(process):
         return process.get_memory_info()
 
 
+def get_threads(process):
+    try:
+        return process.threads()
+    except AttributeError:
+        return process.get_threads()
+
 def all_children(pr):
     processes = []
     children = []
@@ -173,6 +179,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             try:
                 current_cpu = get_percent(pr)
                 current_mem = get_memory(pr)
+                current_threads = get_threads(pr)
             except Exception:
                 break
             current_mem_real = current_mem.rss / 1024. ** 2
@@ -184,6 +191,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child)
+                        current_threads = get_threads(child)
                     except Exception:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2
@@ -191,17 +199,19 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             if logfile:
                 if absolute:
-                    f.write("{0:12.6f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                    f.write("{0:12.6f} {1:12.3f} {2:12.3f} {3:12.3f} {4}\n".format(
                         current_time,
                         current_cpu,
                         current_mem_real,
-                        current_mem_virtual))
+                        current_mem_virtual,
+                        current_threads))
                 else:
-                    f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f}\n".format(
+                    f.write("{0:12.3f} {1:12.3f} {2:12.3f} {3:12.3f} {4}\n".format(
                         current_time - start_time,
                         current_cpu,
                         current_mem_real,
-                        current_mem_virtual))
+                        current_mem_virtual,
+                        current_threads))
                 f.flush()
 
             if interval is not None:
@@ -213,6 +223,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                 log['cpu'].append(current_cpu)
                 log['mem_real'].append(current_mem_real)
                 log['mem_virtual'].append(current_mem_virtual)
+                log['threads'].append(current_threads)
 
     except KeyboardInterrupt:  # pragma: no cover
         pass

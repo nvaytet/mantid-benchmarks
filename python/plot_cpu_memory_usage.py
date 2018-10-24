@@ -4,9 +4,55 @@ import matplotlib.cm as mpm
 
 import numpy as np
 import sys
+import copy
 
 from timestamp_tree import *
-from generic_tree import Node
+
+
+def parse_cpu_log(filename):
+    rows = []
+    dct1 = {}
+    dct2 = {}
+    with open(filename, "r") as f:
+        for line in f:
+            if "#" in line:
+                continue
+            line = line.replace("[","")
+            line = line.replace("]", "")
+            line = line.replace("(", "")
+            line = line.replace(")", "")
+            line = line.replace(",", "")
+            line = line.replace("pthread", "")
+            line = line.replace("id=", "")
+            line = line.replace("user_time=", "")
+            line = line.replace("system_time=", "")
+            row = []
+            lst = line.split()
+            for i in range(4):
+                row.append(float(lst[i]))
+            i = 4
+            dct1 = copy.deepcopy(dct2)
+            dct2.clear()
+            while i < len(lst):
+                idx = int(lst[i])
+                i += 1
+                ut = float(lst[i])
+                i += 1
+                st = float(lst[i])
+                i += 1
+                dct2.update({idx: [ut, st]})
+            count = 0
+            for key, val in dct2.items():
+                if key not in dct1.keys():
+                    count += 1
+                    continue
+                elem = dct1[key]
+                if val[0] != elem[0] or val[1] != elem[1]:
+                    count += 1
+            row.append(count)
+            row.append(len(dct2))
+            rows.append(row)
+    return np.array(rows)
 
 
 def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
@@ -32,13 +78,13 @@ header, records = fromFile(sys.argv[2])
 records = [x for x in records if x["finish"] - x["start"] > 1.0e8]
 header = int(header.split(':')[1])
 # Find maximum level in all trees
+lmax = 0
 for tree in toTrees(records):
-    lmax = 0
     for node in tree.to_list():
         lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
-data = np.loadtxt(sys.argv[1])
+data = parse_cpu_log(sys.argv[1])
 # This is the synchronization time
 sync_time = data[0,0]
 
@@ -51,8 +97,10 @@ ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
 # Plot cpu and memory usage
-ax1.plot(data[:,0]-sync_time,data[:,1], color='k')
-ax2.plot(data[:,0]-sync_time,data[:,2]/1000.0, color='magenta')
+ax1.plot(data[:,0]-sync_time, data[:,1], color='k')
+ax2.plot(data[:,0]-sync_time, data[:,2]/1000.0, color='magenta')
+ax1.plot(data[:,0]-sync_time, data[:,4]*100.0, color='cyan')
+ax1.plot(data[:,0]-sync_time, data[:,5]*100.0, color='green')
 
 # Load colormap
 cm = plt.get_cmap('brg')

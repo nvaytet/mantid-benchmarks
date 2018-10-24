@@ -15,26 +15,26 @@ for i in nthreads_list:
     # print(i)
     # Read in algorithm timing log and build tree
     header, records = fromFile(basename+str(i)+".out")
-    # records = [x for x in records if x["finish"] - x["start"] > 100000000]
-    tree = toTrees(records)[-1]
-    # Compute raw durations
-    raw_tree = tree.apply(lambda x: [x[0], x[2] - x[1]])
-    raw_tree = raw_tree.apply_from_head_childs(lambda x, y: [x[0], x[1] - sum([a[1] for a in y])])
     header = int(header.split(':')[1])
-    for node in tree.to_list():
-        key = node.info[0]
-        if key in tot_time.keys():
-            tot_time[key].append((node.info[2]-node.info[1])/1.0e+09)
-            # raw_time[key].append(float(arr[3]))
-        else:
-            tot_time[key] = [(node.info[2]-node.info[1])/1.0e+09]
-            # raw_time[key] = [float(arr[3])]
-    for node in raw_tree.to_list():
-        key = node.info[0]
-        if key in raw_time.keys():
-            raw_time[key].append(node.info[1]/1.0e+09)
-        else:
-            raw_time[key] = [node.info[1]/1.0e+09]
+    # records = [x for x in records if x["finish"] - x["start"] > 100000000]
+    for tree in toTrees(records):
+        # Compute raw durations
+        raw_tree = tree.apply(lambda x: [x[0], x[2] - x[1]])
+        raw_tree = raw_tree.apply_from_head_childs(lambda x, y: [x[0], x[1] - sum([a[1] for a in y])])
+        for node in tree.to_list():
+            key = node.info[0]
+            if key in tot_time.keys():
+                tot_time[key].append((node.info[2]-node.info[1])/1.0e+09)
+                # raw_time[key].append(float(arr[3]))
+            else:
+                tot_time[key] = [(node.info[2]-node.info[1])/1.0e+09]
+                # raw_time[key] = [float(arr[3])]
+        for node in raw_tree.to_list():
+            key = node.info[0]
+            if key in raw_time.keys():
+                raw_time[key].append(node.info[1]/1.0e+09)
+            else:
+                raw_time[key] = [node.info[1]/1.0e+09]
 
 
 fig = plt.figure()

@@ -1,13 +1,15 @@
+import sys
+sys.path.append("../tools")
+import workflow_config as wfc
+sys.path.extend(wfc.sys_path_ext)
 import os
 cwd = os.getcwd()
-import workflow_config as wfc
-import sys
-sys.path.extend(wfc.sys_path_ext)
+
 from mantid.simpleapi import SNSPowderReduction
 from mantid import config, AnalysisDataService
 
 config['datasearch.searcharchive'] = 'off'
-config['datasearch.directories'] = wfc.datadir + "/data_fact016"# % i
+config.setDataSearchDirs(wfc.datadirs["SNSPowderReduction"])
 
 # Adopted from SNSPowderRedux.PG3Analysis
 run_file  = "PG3_77777_event.nxs"
@@ -22,5 +24,5 @@ SNSPowderReduction(Filename=run_file,
                    CharacterizationRunsFile=char_file,
                    LowResRef=15000, RemovePromptPulseWidth=50,
                    Binning=-0.0004, BinInDspace=True, FilterBadPulses=95,
-                   SaveAs="gsas and fullprof and pdfgetn", OutputDirectory=cwd+'/results',
+                   SaveAs="gsas and fullprof and pdfgetn", OutputDirectory=cwd,
                    FinalDataUnits="dSpacing")

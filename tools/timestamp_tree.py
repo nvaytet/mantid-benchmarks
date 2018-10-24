@@ -41,7 +41,12 @@ def toTrees(records):
         return Node([r["name"] + " " + str(counter), r["start"], r["finish"], counter ])
 
     heads = []
-    counter = 0
+    counter = dict()
+    for rec in recs:
+        if rec["name"] in counter.keys():
+            counter[rec["name"]] += 1
+        else:
+            counter[rec["name"]] = 1
     for rec in recs:
         head = None
         for hd in heads:
@@ -50,11 +55,9 @@ def toTrees(records):
                 break
 
         if head is None:
-            heads.append(rec_to_node(rec, counter))
+            heads.append(rec_to_node(rec, counter[rec["name"]]))
         else:
             parent = head.find_in_depth(cond=lambda x: x[1] <= rec["start"] and rec["finish"] <= x[2])
-            parent.append(rec_to_node(rec, counter))
-        counter += 1
+            parent.append(rec_to_node(rec, counter[rec["name"]]))
+        # counter += 1
     return heads
-
-

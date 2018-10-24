@@ -1,6 +1,5 @@
 import re
 from generic_tree import *
-from dictionary_tree import *
 
 def parseLine(line):
     res = re.split(">>|:|<>", line)

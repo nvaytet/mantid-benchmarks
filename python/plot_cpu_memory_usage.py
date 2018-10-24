@@ -23,22 +23,19 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     x2 = ((node.info[2] + header) / 1.0e9) - sync_time
     x3 = 0.5 * (x1 + x2)
 
-    ax.plot([x1, x1], [y1, y2], clip_on=False, color=colorVal, lw=1)
-    ax.plot([x2, x2], [y1, y2], clip_on=False, color=colorVal, lw=1)
-    ax.plot([x1, x2], [y2, y2], clip_on=False, color=colorVal, lw=1)
-    ax.plot([x3, x3], [y2, y3], clip_on=False, color=colorVal, lw=1)
+    ax.plot([x1, x1, x3, x2, x2], [y1, y2, y3, y2, y1], clip_on=False, color=colorVal, lw=1)
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
 # Read in algorithm timing log and build tree
 header, records = fromFile(sys.argv[2])
-records = [x for x in records if x["finish"] - x["start"] > 100000000]
-tree = toTrees(records)[-1]
+records = [x for x in records if x["finish"] - x["start"] > 1.0e8]
 header = int(header.split(':')[1])
-# Find maximum level
-lmax = 0
-for node in tree.to_list():
-    lmax = max(node.level,lmax)
+# Find maximum level in all trees
+for tree in toTrees(records):
+    lmax = 0
+    for node in tree.to_list():
+        lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
 data = np.loadtxt(sys.argv[1])
@@ -63,8 +60,9 @@ cNorm = mpc.Normalize(vmin=0,vmax=lmax)
 scalarMap = mpm.ScalarMappable(norm=cNorm,cmap=cm)
 
 # Plot algorithm timings
-for node in tree.to_list():
-    plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
+for tree in toTrees(records):
+    for node in tree.to_list():
+        plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
 
 # Finish off and save figure
 ax1.set_xlabel("Time (s)")

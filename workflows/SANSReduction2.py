@@ -16,8 +16,8 @@ from sans.common.file_information import SANSFileInformationFactory
 
 
 # Set-up config
-config['datasearch.searcharchive'] = 'off'
-config.setDataSearchDirs(wfc.datadirs["SANSReduction2"])
+mantid.config['datasearch.searcharchive'] = 'off'
+mantid.config.setDataSearchDirs(wfc.datadirs["SANSReduction2"])
 
 
 def _load_workspace(state):
@@ -94,37 +94,6 @@ def _run_single_reduction(state, sample_scatter, sample_monitor, sample_transmis
     single_reduction_alg.execute()
     # assertTrue(single_reduction_alg.isExecuted())
     return single_reduction_alg
-
-def _compare_workspace(workspace, reference_file_name, check_spectra_map=True):
-    # Load the reference file
-    load_name = "LoadNexusProcessed"
-    load_options = {"Filename": reference_file_name,
-                    "OutputWorkspace": EMPTY_NAME}
-    load_alg = create_unmanaged_algorithm(load_name, **load_options)
-    load_alg.execute()
-    reference_workspace = load_alg.getProperty("OutputWorkspace").value
-
-    # Compare reference file with the output_workspace
-    # We need to disable the instrument comparison, it takes way too long
-    # We need to disable the sample -- Not clear why yet
-    # operation how many entries can be found in the sample logs
-    compare_name = "CompareWorkspaces"
-    compare_options = {"Workspace1": workspace,
-                       "Workspace2": reference_workspace,
-                       "Tolerance": 1e-6,
-                       "CheckInstrument": False,
-                       "CheckSample": False,
-                       "ToleranceRelErr": True,
-                       "CheckAllData": True,
-                       "CheckMasking": True,
-                       "CheckType": True,
-                       "CheckAxes": True,
-                       "CheckSpectraMap": check_spectra_map}
-    compare_alg = create_unmanaged_algorithm(compare_name, **compare_options)
-    compare_alg.setChild(False)
-    compare_alg.execute()
-    result = compare_alg.getProperty("Result").value
-    # self.assertTrue(result)
 
 # Arrange
 # Build the data information

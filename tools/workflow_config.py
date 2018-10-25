@@ -14,7 +14,7 @@
 # Neil
 sys_path_ext = ['']
 
-systemTestDir = "/home/nvaytet/aaa_work/code/mantid/sources/clean/build/ExternalData/Testing/Data/SystemTest"
+systemTestDir = "/home/nvaytet/work/code/mantid/sources/clean/build/ExternalData/Testing/Data/SystemTest"
 datadirs = {}
 
 # SNSPowderReduction

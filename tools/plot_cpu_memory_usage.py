@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpc
 import matplotlib.cm as mpm
+from matplotlib.patches import Rectangle
 
 import numpy as np
 import sys
@@ -89,6 +90,8 @@ for tree in toTrees(records):
 
 # Read in CPU and memory activity log
 sync_time, data = parse_cpu_log(sys.argv[1])
+# Number of threads allocated to this run
+nthreads = int((sys.argv[1].split('_')[-1]).split('.')[0])
 
 # Set up figure
 fig = plt.figure()
@@ -98,11 +101,19 @@ fig.set_size_inches(sizex,ratio*sizex)
 ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
+x = data[:,0]-sync_time
+
 # Plot cpu and memory usage
-ax1.plot(data[:, 0] - sync_time, data[:, 1], color='k')
-ax2.plot(data[:, 0] - sync_time, data[:, 2]/1000.0, color='magenta')
-ax1.plot(data[:, 0] - sync_time, data[:, 4]*100.0, color='cyan')
-ax1.plot(data[:, 0] - sync_time, data[:, 5]*100.0, color='green')
+ax1.add_patch(Rectangle((0.0,0.0),x[-1],nthreads*100.0,edgecolor='none',facecolor='lightgrey'))
+ax1.plot(x, data[:,1], color='k')
+ax2.plot(x, data[:,2]/1000.0, color='magenta')
+ax1.plot(x, data[:,4]*100.0, color='cyan')
+ax1.plot(x, data[:,5]*100.0, color='green')
+
+# Integrate under the curve and print CPU usage fill factor
+area_under_curve = np.trapz(data[:,1], x=x)
+fill_factor = area_under_curve / ((x[-1] - x[0]) * nthreads)
+ax1.text(0,2400.0,"Fill factor = %.1f%%" % fill_factor,ha='left',va='top',fontsize=30)
 
 # Load colormap
 cm = plt.get_cmap('brg')
@@ -119,5 +130,5 @@ ax1.set_xlabel("Time (s)")
 ax1.set_ylabel("CPU (%)", color='k')
 ax2.set_ylabel("Memory (GB)", color='magenta')
 ax1.set_ylim([-100.0,2500.0])
-ax1.grid(color='lightgrey', linestyle='dotted')
+ax1.grid(color='grey', linestyle='dotted')
 fig.savefig(sys.argv[3], bbox_inches="tight")

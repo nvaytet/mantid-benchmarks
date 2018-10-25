@@ -18,11 +18,10 @@ from mantid import config, AnalysisDataService
 import mantid.simpleapi as mantid
 
 config['datasearch.searcharchive'] = 'off'
-config['datasearch.directories'] = wfc.datadirs["Diffraction_WorkflowFiles"]
-print(config['datasearch.directories'])
+config.setDataSearchDirs(wfc.datadirs["Diffraction_WorkflowFiles"])
 
 ws_name = "TOPAZ_3132"
-filename = "TOPAZ_3132_benchmark_event.nxs"
+filename = "TOPAZ_3132_event.nxs"
 ws = mantid.LoadEventNexus(Filename=filename, FilterByTofMin=3000, FilterByTofMax=16000)
 
 # ------------------------------------------------------------------------------------------------------------------------------------------

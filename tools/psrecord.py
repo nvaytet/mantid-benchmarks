@@ -54,19 +54,32 @@ def get_threads(process):
 
 
 def all_children(pr):
-    processes = []
-    children = []
     try:
-        children = pr.children()
+        return pr.children(recursive=True)
     except AttributeError:
-        children = pr.get_children()
+        return pr.get_children(recursive=True)
     except Exception:  # pragma: no cover
-        pass
+        return []
 
-    for child in children:
-        processes.append(child)
-        processes += all_children(child)
-    return processes
+
+def update_children(old_children, new_children): # old children - dict, new_children - list
+    new_dct = {}
+    for ch in new_children:
+        new_dct.update({ch.pid : ch})
+
+    todel = []
+    for pid in old_children.keys():
+        if pid not in new_dct.keys():
+            todel.append(pid)
+
+    for pid in todel:
+        del old_children[pid]
+
+    updct = {}
+    for pid in new_dct.keys():
+        if pid not in old_children.keys():
+            updct.update({pid: new_dct[pid]})
+    old_children.update(updct)
 
 
 def main():
@@ -155,6 +168,10 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     log['mem_real'] = []
     log['mem_virtual'] = []
 
+    children = {}
+    for ch in all_children(pr):
+        children.update({ch.pid: ch})
+
     try:
 
         # Start main event loop
@@ -192,7 +209,8 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
 
             # Get information for children
             if include_children:
-                for child in all_children(pr):
+                update_children(children, all_children(pr))
+                for key, child in children.items():
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child)

@@ -6,7 +6,7 @@ from timestamp_tree import *
 from generic_tree import Node
 
 basename = sys.argv[1] + "_"
-nthreads_list = [1,2,4,8,12,16,20,24]
+nthreads_list = [1, 2, 4, 8, 12, 16, 20, 24]
 
 tot_time = dict()
 raw_time = dict()
@@ -40,30 +40,30 @@ for i in nthreads_list:
 fig = plt.figure()
 ratio = 1.4
 sizex = 10.0
-fig.set_size_inches(sizex,ratio*sizex)
+fig.set_size_inches(sizex, ratio*sizex)
 # ax1 = fig.add_subplot(111)
 ax1 = fig.add_subplot(211)
 ax2 = fig.add_subplot(212)
 
 for key in tot_time.keys():
     # print(key, tot_time[key])
-    if tot_time[key][0] > 1.0 :
+    if tot_time[key][0] > 1.0:
         # ax1.semilogy(nthreads_list,tot_time[key],'-o', label=key)
-        ax1.plot(nthreads_list,tot_time[key],'-o', label=key)
+        ax1.plot(nthreads_list, tot_time[key], '-o', label=key)
     # ax2.semilogy(nthreads_list,raw_time[key],'-o', label=key)
 for key in raw_time.keys():
     # print(key, raw_time[key])
-    if raw_time[key][0] > 1.0 :
+    if raw_time[key][0] > 1.0:
         # ax1.semilogy(nthreads_list,tot_time[key],'-o', label=key)
-        ax2.plot(nthreads_list,raw_time[key],'-o', label=key)
+        ax2.plot(nthreads_list, raw_time[key], '-o', label=key)
 
 ax1.set_xlabel("Number of threads")
 ax1.set_ylabel("Algorithm total time")
-ax1.legend(loc=(1.02,0.0),ncol=1)
+ax1.legend(loc=(1.02, 0.0), ncol=1)
 
 ax2.set_xlabel("Number of threads")
 ax2.set_ylabel("Algorithm raw time")
-ax2.legend(loc=(1.02,0.0),ncol=1)
+ax2.legend(loc=(1.02, 0.0), ncol=1)
 
 # fig.savefig("SANSReduction_timings.png", bbox_inches="tight")
 fig.savefig(basename + "scaling.pdf", bbox_inches="tight")

@@ -1,5 +1,14 @@
 #!/bin/bash
 
+################################################################################
+# Usage:
+#
+# ./benchmark.sh SNSPowderReduction.py
+#
+# If you want to only run a single number of threads (say 12), use
+# ./benchmark.sh SNSPowderReduction.py 12
+################################################################################
+
 BASEDIR="$(pwd)/..";
 TOOLDIR="${BASEDIR}/tools";
 RESULTSDIR="${BASEDIR}/results";
@@ -13,7 +22,11 @@ if [ ${#SCRIPT} -eq 0 ] ; then
 
 else
 
-  NTHREADS=( 1 2 4 8 12 16 20 24 );
+  if [ ${#2} -gt 0 ] ; then
+    NTHREADS=( $2 );
+  else
+    NTHREADS=( 1 2 4 8 12 16 20 24 );
+  fi
 
   for ((i=0; i<${#NTHREADS[@]}; i++ )); do
 

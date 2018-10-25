@@ -14,9 +14,13 @@ def parse_cpu_log(filename):
     rows = []
     dct1 = {}
     dct2 = {}
+    start_time = 0.0
     with open(filename, "r") as f:
         for line in f:
             if "#" in line:
+                continue
+            if "START_TIME:" in line:
+                start_time = float(line.split()[1])
                 continue
             line = line.replace("[","")
             line = line.replace("]", "")
@@ -53,7 +57,7 @@ def parse_cpu_log(filename):
             row.append(count)
             row.append(len(dct2))
             rows.append(row)
-    return np.array(rows)
+    return start_time, np.array(rows)
 
 
 def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
@@ -85,9 +89,7 @@ for tree in toTrees(records):
         lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
-data = parse_cpu_log(sys.argv[1])
-# This is the synchronization time
-sync_time = data[0,0]
+sync_time, data = parse_cpu_log(sys.argv[1])
 # Number of threads allocated to this run
 nthreads = int((sys.argv[1].split('_')[-1]).split('.')[0])
 
@@ -121,7 +123,7 @@ scalarMap = mpm.ScalarMappable(norm=cNorm,cmap=cm)
 # Plot algorithm timings
 for tree in toTrees(records):
     for node in tree.to_list():
-        plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
+        plot_tree_node(ax1, node, lmax, sync_time, header, scalarMap)
 
 # Finish off and save figure
 ax1.set_xlabel("Time (s)")

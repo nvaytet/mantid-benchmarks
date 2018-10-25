@@ -22,7 +22,7 @@ else
     cp $CONFIG.bk $CONFIG;
     echo "MultiThreaded.MaxCores=${NTHREADS[i]}" >> $CONFIG;
 
-    ${PY} ${SCRIPT} ${NTHREADS[i]} & ${PY} ${TOOLDIR}/psrecord.py --log ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.cpu --interval 0.01 --include-children --absolute $!;
+    ${PY} ${SCRIPT} ${NTHREADS[i]} & ${PY} ${TOOLDIR}/psrecord.py --log ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.cpu --include-children --absolute $!;
     mv algotimeregister.out ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.out;
     ${PY} ${TOOLDIR}/plot_cpu_memory_usage.py ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.cpu ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.out ${RESULTSDIR}/${SCRIPT/.py/}_${NTHREADS[i]}.pdf;
 

@@ -18,7 +18,7 @@ from mantid import config, AnalysisDataService
 import mantid.simpleapi as mantid
 
 config['datasearch.searcharchive'] = 'off'
-config['datasearch.directories'] = wfc.datadirs["Diffraction_WorkflowFiles"] + "/data_fact001"
+config['datasearch.directories'] = wfc.datadirs["Diffraction_WorkflowFiles"]
 print(config['datasearch.directories'])
 
 ws_name = "TOPAZ_3132"

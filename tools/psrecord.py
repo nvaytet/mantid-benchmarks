@@ -30,7 +30,7 @@ import time
 import argparse
 import sys
 
-
+# returns percentage for system + user time
 def get_percent(process):
     try:
         return process.cpu_percent()

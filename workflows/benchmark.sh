@@ -13,7 +13,7 @@ if [ ${#SCRIPT} -eq 0 ] ; then
 
 else
 
-  NTHREADS=( 1 2 4 8 12 16 20 24 );
+  NTHREADS=( 12 );
 
   for ((i=0; i<${#NTHREADS[@]}; i++ )); do
 

@@ -30,6 +30,7 @@ import time
 import argparse
 import sys
 
+
 # returns percentage for system + user time
 def get_percent(process):
     try:
@@ -50,6 +51,7 @@ def get_threads(process):
         return process.threads()
     except AttributeError:
         return process.get_threads()
+
 
 def all_children(pr):
     processes = []
@@ -194,7 +196,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
                     try:
                         current_cpu += get_percent(child)
                         current_mem = get_memory(child)
-                        current_threads = get_threads(child)
+                        current_threads.extend(get_threads(child))
                     except Exception:
                         continue
                     current_mem_real += current_mem.rss / 1024. ** 2

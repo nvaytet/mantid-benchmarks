@@ -133,16 +133,19 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
     pr = psutil.Process(pid)
 
     # Record start time
-    start_time = time.time()
+    starting_point = time.time()
+    start_time = time.perf_counter()
 
     if logfile:
         f = open(logfile, 'w')
-        f.write("# {0:12s} {1:12s} {2:12s} {3:12s}\n".format(
+        f.write("# {0:12s} {1:12s} {2:12s} {3:12s} {4}\n".format(
             'Elapsed time'.center(12),
             'CPU (%)'.center(12),
             'Real (MB)'.center(12),
-            'Virtual (MB)'.center(12))
+            'Virtual (MB)'.center(12),
+            'Threads info'.center(12))
         )
+        f.write('START_TIME: {}\n'.format(starting_point))
 
     log = {}
     log['times'] = []
@@ -156,7 +159,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
         while True:
 
             # Find current time
-            current_time = time.time()
+            current_time = time.perf_counter()
 
             try:
                 pr_status = pr.status()
@@ -200,7 +203,7 @@ def monitor(pid, logfile=None, plot=None, duration=None, interval=None,
             if logfile:
                 if absolute:
                     f.write("{0:12.6f} {1:12.3f} {2:12.3f} {3:12.3f} {4}\n".format(
-                        current_time,
+                        current_time - start_time + starting_point,
                         current_cpu,
                         current_mem_real,
                         current_mem_virtual,

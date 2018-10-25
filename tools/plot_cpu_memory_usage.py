@@ -13,9 +13,13 @@ def parse_cpu_log(filename):
     rows = []
     dct1 = {}
     dct2 = {}
+    start_time = 0.0
     with open(filename, "r") as f:
         for line in f:
             if "#" in line:
+                continue
+            if "START_TIME:" in line:
+                start_time = float(line.split()[1])
                 continue
             line = line.replace("[","")
             line = line.replace("]", "")
@@ -52,7 +56,7 @@ def parse_cpu_log(filename):
             row.append(count)
             row.append(len(dct2))
             rows.append(row)
-    return np.array(rows)
+    return start_time, np.array(rows)
 
 
 def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
@@ -84,9 +88,7 @@ for tree in toTrees(records):
         lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
-data = parse_cpu_log(sys.argv[1])
-# This is the synchronization time
-sync_time = data[0,0]
+sync_time, data = parse_cpu_log(sys.argv[1])
 
 # Set up figure
 fig = plt.figure()
@@ -97,10 +99,10 @@ ax1 = fig.add_subplot(111)
 ax2 = ax1.twinx()
 
 # Plot cpu and memory usage
-ax1.plot(data[:,0]-sync_time, data[:,1], color='k')
-ax2.plot(data[:,0]-sync_time, data[:,2]/1000.0, color='magenta')
-ax1.plot(data[:,0]-sync_time, data[:,4]*100.0, color='cyan')
-ax1.plot(data[:,0]-sync_time, data[:,5]*100.0, color='green')
+ax1.plot(data[:, 0] - sync_time, data[:, 1], color='k')
+ax2.plot(data[:, 0] - sync_time, data[:, 2]/1000.0, color='magenta')
+ax1.plot(data[:, 0] - sync_time, data[:, 4]*100.0, color='cyan')
+ax1.plot(data[:, 0] - sync_time, data[:, 5]*100.0, color='green')
 
 # Load colormap
 cm = plt.get_cmap('brg')
@@ -110,7 +112,7 @@ scalarMap = mpm.ScalarMappable(norm=cNorm,cmap=cm)
 # Plot algorithm timings
 for tree in toTrees(records):
     for node in tree.to_list():
-        plot_tree_node(ax1,node,lmax,sync_time,header,scalarMap)
+        plot_tree_node(ax1, node, lmax, sync_time, header, scalarMap)
 
 # Finish off and save figure
 ax1.set_xlabel("Time (s)")

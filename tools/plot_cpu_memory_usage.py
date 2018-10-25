@@ -110,8 +110,8 @@ ax1.plot(x, data[:,5]*100.0, color='green')
 
 # Integrate under the curve and print CPU usage fill factor
 area_under_curve = np.trapz(data[:,1], x=x)
-fill_factor = area_under_curve / ((x[-1] - x[0]) * nthreads * 100.0)
-ax1.text(0,nthreads*100.0,"Fill factor = %.2f%%" % fill_factor,ha='left',va='top',fontsize=30)
+fill_factor = area_under_curve / ((x[-1] - x[0]) * nthreads)
+ax1.text(0,2400.0,"Fill factor = %.1f%%" % fill_factor,ha='left',va='top',fontsize=30)
 
 # Load colormap
 cm = plt.get_cmap('brg')

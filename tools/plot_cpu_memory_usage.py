@@ -78,6 +78,13 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
+def smooth(y):
+    width = 10
+    box = np.ones(width)/float(width)
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
+
 # Read in algorithm timing log and build tree
 header, records = fromFile(sys.argv[2])
 records = [x for x in records if x["finish"] - x["start"] > 1.0e8]
@@ -104,10 +111,11 @@ ax2 = ax1.twinx()
 x = data[:,0]-sync_time
 
 # Plot cpu and memory usage
+
 ax1.add_patch(Rectangle((0.0,0.0),x[-1],nthreads*100.0,edgecolor='none',facecolor='lightgrey'))
-ax1.plot(x, data[:,1], color='k')
+ax1.plot(x, smooth(data[:,1]), color='k')
 ax2.plot(x, data[:,2]/1000.0, color='magenta')
-ax1.plot(x, data[:,4]*100.0, color='cyan')
+ax1.plot(x, smooth(data[:,4]*100.0), color='cyan')
 ax1.plot(x, data[:,5]*100.0, color='green')
 
 # Integrate under the curve and print CPU usage fill factor

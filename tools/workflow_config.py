@@ -36,3 +36,7 @@ datadirs.update({"DGSReduction": datadir + ";" + systemTestDir})
 # Diffraction_Workflow
 datadir = "/media/igudich/2ecb279f-1d34-4ab5-8a8a-224220f5d50f/Diffraction_WorkflowFiles/data_fact010"
 datadirs.update({"Diffraction_WorkflowFiles": datadir + ";" + systemTestDir})
+
+# SXD_NaCl
+datadir = ""
+datadirs.update({"SXD_NaCl": datadir + ";" + systemTestDir})

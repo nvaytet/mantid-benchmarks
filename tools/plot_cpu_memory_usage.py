@@ -78,8 +78,7 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
-def smooth(y):
-    width = 10
+def smooth(y, width=1):
     box = np.ones(width)/float(width)
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
@@ -116,16 +115,18 @@ rect = ax1.add_patch(Rectangle((0.0,0.0),x[-1],nthreads*100.0,edgecolor='none',f
 line1 = ax1.plot(x, smooth(data[:,1]), color='k', label="CPU")
 line2 = ax2.plot(x, data[:,2]/1000.0, color='magenta', label="RAM")
 line3 = ax1.plot(x, smooth(data[:,4]*100.0), color='cyan', label="Number of active threads")
-line4 = ax1.plot(x, data[:,5]*100.0, color='green', label="Threads created (active or waiting)")
+# line4 = ax1.plot(x, data[:,5]*100.0, color='green', label="Threads created (active or waiting)")
 
 # added these three lines
-lines = line1 + line2 + line3 + line4
+lines = line1 + line2 + line3# + line4
 labs = [l.get_label() for l in lines]
 
 # Integrate under the curve and print CPU usage fill factor
-area_under_curve = np.trapz(data[:,1], x=x)
+area_under_curve = np.trapz(data[:, 1], x=x)
 fill_factor = area_under_curve / ((x[-1] - x[0]) * nthreads)
-ax1.text(0,2400.0,"Fill factor = %.1f%%" % fill_factor,ha='left',va='top',fontsize=30)
+leg_cpu = ax1.legend(loc='lower left', bbox_to_anchor=(0.05, 0.7), frameon=False, fontsize=font_size)
+leg_cpu.set_title(title="Fill factor = %.1f%%" % fill_factor, prop = {'size' : font_size})
+# ax2.legend(loc='lower left', bbox_to_anchor=(0.05, 0.6), frameon=False, fontsize=font_size)
 
 # Load colormap
 cm = plt.get_cmap('brg')
@@ -138,10 +139,10 @@ for tree in toTrees(records):
         plot_tree_node(ax1, node, lmax, sync_time, header, scalarMap)
 
 # Finish off and save figure
-ax1.set_xlabel("Time (s)")
-ax1.set_ylabel("CPU (%)", color='k')
-ax2.set_ylabel("Memory (GB)", color='magenta')
-ax1.set_ylim([-100.0,2500.0])
+ax1.set_xlabel("Time (s)", fontsize=font_size)
+ax1.set_ylabel("CPU (%)", color='k', fontsize=font_size)
+ax2.set_ylabel("Memory (GB)", color='magenta', fontsize=font_size)
+ax1.set_ylim([-100.0, 2500.0])
 ax1.grid(color='grey', linestyle='dotted')
 ax1.legend(lines, labs, loc=(0.3,1.05), ncol=4, fontsize=30)
 fig.savefig(sys.argv[3], bbox_inches="tight")

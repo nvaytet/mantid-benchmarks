@@ -8,6 +8,7 @@ import sys
 import copy
 
 from timestamp_tree import *
+import random
 
 
 def parse_cpu_log(filename):
@@ -78,14 +79,53 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
+def treeNodeToHtml(node, lmax, sync_time, header):
+
+    x0 = ((node.info[1] + header) / 1.0e9) - sync_time
+    x1 = ((node.info[2] + header) / 1.0e9) - sync_time
+    y0 = -(lmax-node.level+1)
+    y1 = 0.0
+
+    outputString = "var shape = {\n"
+    outputString += "  'type': 'rect',\n"
+    outputString += "  'x0': %f,\n" % x0
+    outputString += "  'y0': %f,\n" % y0
+    outputString += "  'x1': %f,\n" % x1
+    outputString += "  'y1': %f,\n" % y1
+    outputString += "  'line': {\n"
+    outputString += "    'width': 2\n"
+    outputString += "  },\n"
+    outputString += "  'fillcolor': 'rgb(%i,%i,%i)',\n" % (random.random()*255.,random.random()*255.,random.random()*255.)
+    outputString += "  'opacity': 0.6,\n"
+    outputString += "  'xref': 'x',\n"
+    outputString += "  'yref': 'y3',\n"
+    outputString += "};\n"
+    outputString += "shapes.push(shape);\n"
+    outputString += "var annotation = {\n"
+    outputString += "  x: %f,\n" % (0.5*(x0 + x1))
+    outputString += "  y: %f,\n" % (0.5*(y0 + y1))
+    outputString += "  text: '" + node.info[0] + "',\n"
+    outputString += "  showarrow: false,\n"
+    outputString += "};\n"
+    outputString += "annotations.push(annotation);\n"
+    
+    outputString += "x_trace.push(%f);\n" % (0.5*(x0 + x1))
+    outputString += "y_trace.push(%f);\n" % (0.5*(y0 + y1))    
+    outputString += "text.push('" + node.info[0] + "');\n"
+
+    return outputString
+
+
 def smooth(y, width=1):
     box = np.ones(width)/float(width)
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
 
+file_basename = sys.argv[1]
+
 # Read in algorithm timing log and build tree
-header, records = fromFile(sys.argv[2])
+header, records = fromFile(file_basename+".out")
 records = [x for x in records if x["finish"] - x["start"] > 1.0e8]
 header = int(header.split(':')[1])
 # Find maximum level in all trees
@@ -95,9 +135,9 @@ for tree in toTrees(records):
         lmax = max(node.level,lmax)
 
 # Read in CPU and memory activity log
-sync_time, data = parse_cpu_log(sys.argv[1])
+sync_time, data = parse_cpu_log(file_basename+".cpu")
 # Number of threads allocated to this run
-nthreads = int((sys.argv[1].split('_')[-1]).split('.')[0])
+nthreads = int(((file_basename)).split('_')[-1])
 
 # Set up figure
 fig = plt.figure()
@@ -124,9 +164,8 @@ labs = [l.get_label() for l in lines]
 # Integrate under the curve and print CPU usage fill factor
 area_under_curve = np.trapz(data[:, 1], x=x)
 fill_factor = area_under_curve / ((x[-1] - x[0]) * nthreads)
-leg_cpu = ax1.legend(loc='lower left', bbox_to_anchor=(0.05, 0.7), frameon=False, fontsize=font_size)
-leg_cpu.set_title(title="Fill factor = %.1f%%" % fill_factor, prop = {'size' : font_size})
-# ax2.legend(loc='lower left', bbox_to_anchor=(0.05, 0.6), frameon=False, fontsize=font_size)
+font_size = 30
+ax1.text(0,2400.0,"Fill factor = %.1f%%" % fill_factor,ha='left',va='top',fontsize=font_size)
 
 # Load colormap
 cm = plt.get_cmap('brg')
@@ -144,11 +183,11 @@ ax1.set_ylabel("CPU (%)", color='k', fontsize=font_size)
 ax2.set_ylabel("Memory (GB)", color='magenta', fontsize=font_size)
 ax1.set_ylim([-100.0, 2500.0])
 ax1.grid(color='grey', linestyle='dotted')
-ax1.legend(lines, labs, loc=(0.3,1.05), ncol=4, fontsize=30)
-fig.savefig(sys.argv[3], bbox_inches="tight")
+ax1.legend(lines, labs, loc=(0.3,1.05), ncol=4, fontsize=font_size)
+fig.savefig(file_basename+".pdf", bbox_inches="tight")
 
 
-htmlFname = sys.argv[3].replace(".pdf",".html")
+htmlFname = file_basename+".html"
 htmlFile = open(htmlFname,'w')
 
 # # Dygraphs
@@ -194,17 +233,19 @@ htmlFile.write("  <div id=\"myDiv\"></div>\n")
 htmlFile.write("  <script>\n")
 
 htmlFile.write("  var trace0 = {\n")
-htmlFile.write("    x: [\n")
+htmlFile.write("    'x': [\n")
 for i in range(len(x)):
     htmlFile.write("%f,\n" % x[i])
 htmlFile.write("],\n")
-htmlFile.write("    y: [\n")
+htmlFile.write("    'y': [\n")
 for i in range(len(x)):
     htmlFile.write("%f,\n" % data[i,1])
 htmlFile.write("],\n")
-htmlFile.write("  xaxis: 'x',\n")
-htmlFile.write("  yaxis: 'y',\n")
-htmlFile.write("  type: 'scatter'\n};\n")
+htmlFile.write("  'xaxis': 'x',\n")
+htmlFile.write("  'yaxis': 'y1',\n")
+htmlFile.write("  type: 'scatter',\n")
+htmlFile.write("  name:'CPU',\n")
+htmlFile.write("};\n")
 
 htmlFile.write("  var trace1 = {\n")
 htmlFile.write("    x: [\n")
@@ -213,20 +254,123 @@ for i in range(len(x)):
 htmlFile.write("],\n")
 htmlFile.write("    y: [\n")
 for i in range(len(x)):
-    htmlFile.write("%f,\n" % data[i,4])
+    htmlFile.write("%f,\n" % (data[i,2]/1000.0))
 htmlFile.write("],\n")
 htmlFile.write("  xaxis: 'x',\n")
 htmlFile.write("  yaxis: 'y2',\n")
-htmlFile.write("  type: 'scatter'\n};\n")
+htmlFile.write("  type: 'scatter',\n")
+htmlFile.write("  name:'RAM',\n")
+htmlFile.write("};\n")
 
-htmlFile.write("var data = [trace0, trace1];\n")
+
+
+htmlFile.write("  var shapes = [];\n")
+htmlFile.write("  var annotations = [];\n")
+htmlFile.write("  var counter = 0;\n")
+htmlFile.write("  var x_trace = [];\n")
+htmlFile.write("  var y_trace = [];\n")
+htmlFile.write("  var text = [];\n")
+for tree in toTrees(records):
+    for node in tree.to_list():
+        htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header))
+
+htmlFile.write("  var trace2 = {\n")
+htmlFile.write("    'x': x_trace,\n")
+htmlFile.write("    'y': y_trace,\n")
+htmlFile.write("    'text': text,\n")
+htmlFile.write("    'mode': 'none',\n")
+htmlFile.write("    'xaxis': 'x',\n")
+htmlFile.write("    'yaxis': 'y3',\n")
+htmlFile.write("    'type': 'scatter',\n")
+# htmlFile.write("    'showlegend': False,\n")
+htmlFile.write("  type: 'scatter',\n")
+htmlFile.write("  };\n")
+
+# htmlFile.write("var layout = {
+#             height: 700,
+#             width: 700,
+#             shapes: shapes,
+#             hovermode: 'closest',
+#             annotations: annotations,
+#             xaxis: {
+#                         showgrid: false,
+#                         zeroline: false
+#             },
+#             yaxis: {
+#                         showgrid: false,
+#                         zeroline: false
+#             }
+# };
+
+# var data = {
+#             data: [trace0]
+# };
+
+# Plotly.newPlot('myDiv', [trace0], layout);
+
+
+
+
+
+
+
+
+
+
+
+
+
+htmlFile.write("var data = [trace0, trace1, trace2];\n")
 
 htmlFile.write("var layout = {\n")
-htmlFile.write("  grid: {\n")
-htmlFile.write("    rows: 2,\n")
-htmlFile.write("    columns: 1,\n")
-htmlFile.write("    subplots:[['xy'], ['xy2']],\n")
-htmlFile.write("    roworder:'bottom to top'},\n")
+htmlFile.write("  'xaxis' : {\n")
+htmlFile.write("    'domain' : [0, 1.0],\n")
+htmlFile.write("    'title' : 'Time (s)',\n")
+htmlFile.write("    'side' : 'top',\n")
+htmlFile.write("  },\n")
+htmlFile.write("  'yaxis1': {\n")
+htmlFile.write("    'domain' : [0.5, 1.0],\n")
+# htmlFile.write("    'scaleanchor' : 'x',\n")
+htmlFile.write("    'title': 'CPU (%)',\n")
+htmlFile.write("    'side': 'left',\n")
+htmlFile.write("    },\n")
+htmlFile.write("  'yaxis2': {\n")
+# htmlFile.write("    'domain' : [0.5, 1.0],\n")
+htmlFile.write("    'title': 'RAM (GB)',\n")
+htmlFile.write("    'overlaying': 'y1',\n")
+# htmlFile.write("    'scaleanchor' : 'x',\n")
+htmlFile.write("    'side': 'right',\n")
+htmlFile.write("    'showgrid': false,\n")
+htmlFile.write("    },\n")
+htmlFile.write("  'yaxis3': {\n")
+htmlFile.write("    'domain' : [0, 0.5],\n")
+htmlFile.write("    'anchor' : 'x',\n")
+# htmlFile.write("    'title': 'RAM',\n")
+# htmlFile.write("    'overlaying': 'y',\n")
+htmlFile.write("    'side': 'left',\n")
+htmlFile.write("    },\n")
+
+# htmlFile.write("  'grid': {\n")
+# htmlFile.write("    'rows' : 2,\n")
+# htmlFile.write("    'columns' : 1,\n")
+# htmlFile.write("    'subplots' :[['xy1'], ['xy3']],\n")
+# htmlFile.write("    'roworder' :'top to bottom'\n")
+# htmlFile.write("  },\n")
+htmlFile.write("  'shapes' : shapes,\n")
+htmlFile.write("  'hovermode' : 'closest',\n")
+# htmlFile.write("  'yaxis2': {\n")
+# htmlFile.write("    'title': 'RAM',\n")
+# # htmlFile.write("    'titlefont': {color: 'rgb(148, 103, 189)'},\n")
+# # htmlFile.write("    'tickfont': {color: 'rgb(148, 103, 189)'},\n")
+# htmlFile.write("    'overlaying': 'y',\n")
+# htmlFile.write("    'side': 'right'\n")
+# htmlFile.write("    },\n")
+# htmlFile.write("  annotations: annotations,\n")
+htmlFile.write("  'legend': {\n")
+htmlFile.write("    'x' : 0,\n")
+htmlFile.write("    'y' : 2600,\n")
+htmlFile.write("    'orientation' : 'h',\n")
+htmlFile.write("  }\n")
 htmlFile.write("};\n")
 
 htmlFile.write("Plotly.newPlot('myDiv', data, layout);\n")

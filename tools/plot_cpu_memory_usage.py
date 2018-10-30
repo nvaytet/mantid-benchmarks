@@ -79,39 +79,38 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
-def treeNodeToHtml(node, lmax, sync_time, header):
+def treeNodeToHtml(node, lmax, sync_time, header, count):
 
     x0 = ((node.info[1] + header) / 1.0e9) - sync_time
     x1 = ((node.info[2] + header) / 1.0e9) - sync_time
-    y0 = -(lmax-node.level+1)
-    y1 = 0.0
+    x2 = 0.5 * (x0 + x1)
+    y0 = 0.0
+    y1 = -(lmax-node.level+1)
 
-    outputString = "var shape = {\n"
-    outputString += "  'type': 'rect',\n"
-    outputString += "  'x0': %f,\n" % x0
-    outputString += "  'y0': %f,\n" % y0
-    outputString += "  'x1': %f,\n" % x1
-    outputString += "  'y1': %f,\n" % y1
-    outputString += "  'line': {\n"
-    outputString += "    'width': 2\n"
-    outputString += "  },\n"
-    outputString += "  'fillcolor': 'rgb(%i,%i,%i)',\n" % (random.random()*255.,random.random()*255.,random.random()*255.)
-    outputString += "  'opacity': 0.6,\n"
-    outputString += "  'xref': 'x',\n"
-    outputString += "  'yref': 'y3',\n"
+    outputString = "trace%i = {\n" % count
+    outputString += "x: [%f, %f, %f, %f, %f],\n" % (x0, x0, x2, x1, x1)
+    outputString += "y: [%f, %f, %f, %f, %f],\n" % (y0, y1, y1, y1, y0)
+    outputString += "fill: 'tozeroy',\n"
+    outputString += "fillcolor: 'rgb(%i,%i,%i)',\n" % (random.random()*255.,random.random()*255.,random.random()*255.)
+    outputString += "line: {\n"
+    outputString += "color: '#000000',\n"
+    outputString += "dash: 'solid',\n"
+    outputString += "shape: 'linear',\n"
+    outputString += "width: 1.0\n"
+    outputString += "},\n"
+    outputString += "mode: 'lines+text',\n"
+    outputString += "text: ['', '', '%s', '', ''],\n" % node.info[0]
+    outputString += "textposition: 'top',\n"
+    outputString += "textfont: {\n"
+    # outputString += "  size: %i,\n" % (x1-x0)
+    outputString += "  color: '#ffffff',\n"
+    outputString += "},\n"
+    outputString += "name: '" + node.info[0] + "',\n"
+    outputString += "type: 'scatter',\n"
+    outputString += "xaxis: 'x',\n"
+    outputString += "yaxis: 'y3',\n"
+    outputString += "showlegend: false,\n"
     outputString += "};\n"
-    outputString += "shapes.push(shape);\n"
-    outputString += "var annotation = {\n"
-    outputString += "  x: %f,\n" % (0.5*(x0 + x1))
-    outputString += "  y: %f,\n" % (0.5*(y0 + y1))
-    outputString += "  text: '" + node.info[0] + "',\n"
-    outputString += "  showarrow: false,\n"
-    outputString += "};\n"
-    outputString += "annotations.push(annotation);\n"
-    
-    outputString += "x_trace.push(%f);\n" % (0.5*(x0 + x1))
-    outputString += "y_trace.push(%f);\n" % (0.5*(y0 + y1))    
-    outputString += "text.push('" + node.info[0] + "');\n"
 
     return outputString
 
@@ -187,44 +186,10 @@ ax1.legend(lines, labs, loc=(0.3,1.05), ncol=4, fontsize=font_size)
 fig.savefig(file_basename+".pdf", bbox_inches="tight")
 
 
+# Create HTML output with Plotly
+
 htmlFname = file_basename+".html"
 htmlFile = open(htmlFname,'w')
-
-# # Dygraphs
-#
-# # Write header
-# htmlFile.write("<html>\n<head>\n")
-# htmlFile.write("  <script src=\"dygraph.min.js\"></script>\n")
-# htmlFile.write("  <link rel=\"stylesheet\" href=\"dygraph.css\" />\n")
-# htmlFile.write("</head>\n<body>\n<div id=\"graphdiv\"></div>\n")
-# htmlFile.write("<script type=\"text/javascript\">\n")
-# htmlFile.write("var data = [\n")
-# # for i in range(len(x)):
-# #     htmlFile.write("  [%f,%f,%f,%f,%f],\n" % (x[i],data[i,1],data[i,2]/1000.0,data[i,4]*100.0,data[i,5]*100.0))
-# for i in range(len(x)):
-#     htmlFile.write("  [%f,%f,%f,%f],\n" % (x[i],data[i,1],data[i,2]/1000.0,data[i,4]*100.0))
-# htmlFile.write("  ];\n")
-# htmlFile.write("  g = new Dygraph(\n")
-# htmlFile.write("    document.getElementById(\"graphdiv\"),\n")
-# htmlFile.write("    data,\n")
-# htmlFile.write("    {\n")
-# htmlFile.write("      labels: [ 'Time', 'CPU' , 'RAM', 'Active threads' ],\n")
-# htmlFile.write("      series : {\n")
-# htmlFile.write("        'RAM': { axis: 'y2' }\n")
-# htmlFile.write("      },\n")
-# htmlFile.write("      ylabel: 'CPU (%)',\n")
-# htmlFile.write("      y2label: 'RAM (GB)',\n")
-# htmlFile.write("      width: 2000,\n")
-# htmlFile.write("    }\n")
-# htmlFile.write("  );\n")
-# htmlFile.write("</script>\n</body>\n</html>\n")
-# htmlFile.close()
-
-
-
-
-# Plotly
-
 htmlFile.write("<head>\n")
 htmlFile.write("  <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n")
 htmlFile.write("</head>\n")
@@ -262,67 +227,33 @@ htmlFile.write("  type: 'scatter',\n")
 htmlFile.write("  name:'RAM',\n")
 htmlFile.write("};\n")
 
+htmlFile.write("  var trace2 = {\n")
+htmlFile.write("    x: [\n")
+for i in range(len(x)):
+    htmlFile.write("%f,\n" % x[i])
+htmlFile.write("],\n")
+htmlFile.write("    y: [\n")
+for i in range(len(x)):
+    htmlFile.write("%f,\n" % (data[i,4]*100.0))
+htmlFile.write("],\n")
+htmlFile.write("  xaxis: 'x',\n")
+htmlFile.write("  yaxis: 'y1',\n")
+htmlFile.write("  type: 'scatter',\n")
+htmlFile.write("  name:'Active threads',\n")
+htmlFile.write("};\n")
 
-
-htmlFile.write("  var shapes = [];\n")
-htmlFile.write("  var annotations = [];\n")
-htmlFile.write("  var counter = 0;\n")
-htmlFile.write("  var x_trace = [];\n")
-htmlFile.write("  var y_trace = [];\n")
-htmlFile.write("  var text = [];\n")
+count = 3
+dataString = "[trace0,trace1,trace2"
 for tree in toTrees(records):
     for node in tree.to_list():
-        htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header))
+        htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header, count))
+        dataString += ",trace%i" % count
+        count += 1
+dataString += "]"
 
-htmlFile.write("  var trace2 = {\n")
-htmlFile.write("    'x': x_trace,\n")
-htmlFile.write("    'y': y_trace,\n")
-htmlFile.write("    'text': text,\n")
-htmlFile.write("    'mode': 'none',\n")
-htmlFile.write("    'xaxis': 'x',\n")
-htmlFile.write("    'yaxis': 'y3',\n")
-htmlFile.write("    'type': 'scatter',\n")
-# htmlFile.write("    'showlegend': False,\n")
-htmlFile.write("  type: 'scatter',\n")
-htmlFile.write("  };\n")
-
-# htmlFile.write("var layout = {
-#             height: 700,
-#             width: 700,
-#             shapes: shapes,
-#             hovermode: 'closest',
-#             annotations: annotations,
-#             xaxis: {
-#                         showgrid: false,
-#                         zeroline: false
-#             },
-#             yaxis: {
-#                         showgrid: false,
-#                         zeroline: false
-#             }
-# };
-
-# var data = {
-#             data: [trace0]
-# };
-
-# Plotly.newPlot('myDiv', [trace0], layout);
-
-
-
-
-
-
-
-
-
-
-
-
-
-htmlFile.write("var data = [trace0, trace1, trace2];\n")
-
+htmlFile.write("var data = " + dataString + ";\n")
 htmlFile.write("var layout = {\n")
+htmlFile.write("  'height': 700,\n")
 htmlFile.write("  'xaxis' : {\n")
 htmlFile.write("    'domain' : [0, 1.0],\n")
 htmlFile.write("    'title' : 'Time (s)',\n")
@@ -330,50 +261,44 @@ htmlFile.write("    'side' : 'top',\n")
 htmlFile.write("  },\n")
 htmlFile.write("  'yaxis1': {\n")
 htmlFile.write("    'domain' : [0.5, 1.0],\n")
-# htmlFile.write("    'scaleanchor' : 'x',\n")
 htmlFile.write("    'title': 'CPU (%)',\n")
 htmlFile.write("    'side': 'left',\n")
+htmlFile.write("    'fixedrange': true,\n")
 htmlFile.write("    },\n")
 htmlFile.write("  'yaxis2': {\n")
-# htmlFile.write("    'domain' : [0.5, 1.0],\n")
 htmlFile.write("    'title': 'RAM (GB)',\n")
 htmlFile.write("    'overlaying': 'y1',\n")
-# htmlFile.write("    'scaleanchor' : 'x',\n")
 htmlFile.write("    'side': 'right',\n")
+htmlFile.write("    'fixedrange': true,\n")
 htmlFile.write("    'showgrid': false,\n")
 htmlFile.write("    },\n")
 htmlFile.write("  'yaxis3': {\n")
 htmlFile.write("    'domain' : [0, 0.5],\n")
 htmlFile.write("    'anchor' : 'x',\n")
-# htmlFile.write("    'title': 'RAM',\n")
-# htmlFile.write("    'overlaying': 'y',\n")
+htmlFile.write("    'showgrid': false,\n")
+htmlFile.write("    'ticks': '',\n")
+htmlFile.write("    'showticklabels': false,\n")
+htmlFile.write("    'fixedrange': true,\n")
 htmlFile.write("    'side': 'left',\n")
 htmlFile.write("    },\n")
-
-# htmlFile.write("  'grid': {\n")
-# htmlFile.write("    'rows' : 2,\n")
-# htmlFile.write("    'columns' : 1,\n")
-# htmlFile.write("    'subplots' :[['xy1'], ['xy3']],\n")
-# htmlFile.write("    'roworder' :'top to bottom'\n")
-# htmlFile.write("  },\n")
-htmlFile.write("  'shapes' : shapes,\n")
 htmlFile.write("  'hovermode' : 'closest',\n")
-# htmlFile.write("  'yaxis2': {\n")
-# htmlFile.write("    'title': 'RAM',\n")
-# # htmlFile.write("    'titlefont': {color: 'rgb(148, 103, 189)'},\n")
-# # htmlFile.write("    'tickfont': {color: 'rgb(148, 103, 189)'},\n")
-# htmlFile.write("    'overlaying': 'y',\n")
-# htmlFile.write("    'side': 'right'\n")
-# htmlFile.write("    },\n")
-# htmlFile.write("  annotations: annotations,\n")
 htmlFile.write("  'legend': {\n")
 htmlFile.write("    'x' : 0,\n")
-htmlFile.write("    'y' : 2600,\n")
+htmlFile.write("    'y' : 1.2,\n")
 htmlFile.write("    'orientation' : 'h',\n")
-htmlFile.write("  }\n")
+htmlFile.write("  },\n")
+htmlFile.write("  'annotations': [{\n")
+htmlFile.write("    xref: 'paper',\n")
+htmlFile.write("    yref: 'paper',\n")
+htmlFile.write("    x: 1,\n")
+htmlFile.write("    xanchor: 'right',\n")
+htmlFile.write("    y: 1.1,\n")
+htmlFile.write("    yanchor: 'bottom',\n")
+htmlFile.write("    text: 'Fill factor: %.1f%%',\n" % fill_factor)
+htmlFile.write("    showarrow: false\n")
+htmlFile.write("  }],\n")
 htmlFile.write("};\n")
-
-htmlFile.write("Plotly.newPlot('myDiv', data, layout);\n")
+htmlFile.write("Plotly.newPlot('myDiv', data, layout, {scrollZoom: true});\n")
 htmlFile.write("</script>\n</body>\n</html>\n")
 
 htmlFile.close()

@@ -186,7 +186,7 @@ ax1.legend(lines, labs, loc=(0.3,1.05), ncol=4, fontsize=font_size)
 fig.savefig(file_basename+".pdf", bbox_inches="tight")
 
 
-# Create HTML output with Plotly
+# Create HTML output with Plotly ###############################################
 
 htmlFname = file_basename+".html"
 htmlFile = open(htmlFname,'w')
@@ -196,8 +196,8 @@ htmlFile.write("</head>\n")
 htmlFile.write("<body>\n")
 htmlFile.write("  <div id=\"myDiv\"></div>\n")
 htmlFile.write("  <script>\n")
-
-htmlFile.write("  var trace0 = {\n")
+# CPU
+htmlFile.write("  var trace1 = {\n")
 htmlFile.write("    'x': [\n")
 for i in range(len(x)):
     htmlFile.write("%f,\n" % x[i])
@@ -211,8 +211,8 @@ htmlFile.write("  'yaxis': 'y1',\n")
 htmlFile.write("  type: 'scatter',\n")
 htmlFile.write("  name:'CPU',\n")
 htmlFile.write("};\n")
-
-htmlFile.write("  var trace1 = {\n")
+# RAM
+htmlFile.write("  var trace2 = {\n")
 htmlFile.write("    x: [\n")
 for i in range(len(x)):
     htmlFile.write("%f,\n" % x[i])
@@ -226,8 +226,8 @@ htmlFile.write("  yaxis: 'y2',\n")
 htmlFile.write("  type: 'scatter',\n")
 htmlFile.write("  name:'RAM',\n")
 htmlFile.write("};\n")
-
-htmlFile.write("  var trace2 = {\n")
+# Active threads
+htmlFile.write("  var trace3 = {\n")
 htmlFile.write("    x: [\n")
 for i in range(len(x)):
     htmlFile.write("%f,\n" % x[i])
@@ -242,8 +242,8 @@ htmlFile.write("  type: 'scatter',\n")
 htmlFile.write("  name:'Active threads',\n")
 htmlFile.write("};\n")
 
-count = 3
-dataString = "[trace0,trace1,trace2"
+count = 4
+dataString = "[trace1,trace2,trace3"
 for tree in toTrees(records):
     for node in tree.to_list():
         htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header, count))
@@ -284,7 +284,7 @@ htmlFile.write("    },\n")
 htmlFile.write("  'hovermode' : 'closest',\n")
 htmlFile.write("  'legend': {\n")
 htmlFile.write("    'x' : 0,\n")
-htmlFile.write("    'y' : 1.2,\n")
+htmlFile.write("    'y' : 1.1,\n")
 htmlFile.write("    'orientation' : 'h',\n")
 htmlFile.write("  },\n")
 htmlFile.write("  'annotations': [{\n")
@@ -297,8 +297,20 @@ htmlFile.write("    yanchor: 'bottom',\n")
 htmlFile.write("    text: 'Fill factor: %.1f%%',\n" % fill_factor)
 htmlFile.write("    showarrow: false\n")
 htmlFile.write("  }],\n")
+htmlFile.write("  'shapes': [{\n")
+htmlFile.write("      layer: 'below',\n")
+htmlFile.write("      fillcolor: '#E0E0E0',\n")
+htmlFile.write("      line : {\n")
+htmlFile.write("        width: 0,\n")
+htmlFile.write("      },\n")
+htmlFile.write("      x0: 0.0,\n")
+htmlFile.write("      x1: %f,\n" % x[-1])
+htmlFile.write("      y0: 0,\n")
+htmlFile.write("      y1: %i,\n" % (nthreads*100))
+htmlFile.write("      xref: 'x',\n")
+htmlFile.write("      yref: 'y1',\n")
+htmlFile.write("    }],\n")
 htmlFile.write("};\n")
 htmlFile.write("Plotly.newPlot('myDiv', data, layout, {scrollZoom: true});\n")
 htmlFile.write("</script>\n</body>\n</html>\n")
-
 htmlFile.close()

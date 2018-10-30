@@ -79,6 +79,16 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
 
+def stringToColor(string):
+
+    RGBint = hash(string)
+    blu =  RGBint & 255
+    grn = (RGBint >> 8) & 255
+    red = (RGBint >> 16) & 255
+    return "rgb(%i,%i,%i)" % (red,grn,blu)
+
+
+
 def treeNodeToHtml(node, lmax, sync_time, header, count):
 
     x0 = ((node.info[1] + header) / 1.0e9) - sync_time
@@ -87,11 +97,13 @@ def treeNodeToHtml(node, lmax, sync_time, header, count):
     y0 = 0.0
     y1 = -(lmax-node.level+1)
 
+    color = stringToColor(node.info[0].split(' ')[0])
+
     outputString = "trace%i = {\n" % count
     outputString += "x: [%f, %f, %f, %f, %f],\n" % (x0, x0, x2, x1, x1)
     outputString += "y: [%f, %f, %f, %f, %f],\n" % (y0, y1, y1, y1, y0)
     outputString += "fill: 'tozeroy',\n"
-    outputString += "fillcolor: 'rgb(%i,%i,%i)',\n" % (random.random()*255.,random.random()*255.,random.random()*255.)
+    outputString += "fillcolor: '" + color + "',\n"
     outputString += "line: {\n"
     outputString += "color: '#000000',\n"
     outputString += "dash: 'solid',\n"

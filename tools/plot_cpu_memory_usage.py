@@ -89,15 +89,38 @@ def stringToColor(string):
 
 
 
-def treeNodeToHtml(node, lmax, sync_time, header, count):
+def treeNodeToHtml(node, lmax, sync_time, header, count, tot_time):
 
     x0 = ((node.info[1] + header) / 1.0e9) - sync_time
     x1 = ((node.info[2] + header) / 1.0e9) - sync_time
     x2 = 0.5 * (x0 + x1)
     y0 = 0.0
     y1 = -(lmax-node.level+1)
+    dt = x1 - x0
 
+    # Get unique color from algorithm name
     color = stringToColor(node.info[0].split(' ')[0])
+    # Compute raw time and percentages
+    rawTime = dt
+    if len(node.children) > 0:
+        for ch in node.children:
+            rawTime -= (ch.info[2] - ch.info[1]) / 1.0e9
+    percTot = dt * 100.0 / tot_time
+    percRaw = rawTime * 100.0 / tot_time
+
+    boxText = node.info[0] + " : "
+    if dt < 0.1:
+        boxText += "%.1E" % dt
+    else:
+        boxText += "%.1f" % dt
+    boxText += "s (%.1f%%) | %.1fs (%.1f%%)<br>" % (percTot,rawTime,percRaw)
+
+    if node.parent is not None:
+        boxText += "Parent: " + node.parent.info[0] + "<br>"
+    if len(node.children) > 0:
+        boxText += "Children: <br>"
+        for ch in node.children:
+            boxText += "  - " + ch.info[0] + "<br>"
 
     outputString = "trace%i = {\n" % count
     outputString += "x: [%f, %f, %f, %f, %f],\n" % (x0, x0, x2, x1, x1)
@@ -114,10 +137,10 @@ def treeNodeToHtml(node, lmax, sync_time, header, count):
     outputString += "text: ['', '', '%s', '', ''],\n" % node.info[0]
     outputString += "textposition: 'top',\n"
     outputString += "textfont: {\n"
-    # outputString += "  size: %i,\n" % (x1-x0)
     outputString += "  color: '#ffffff',\n"
     outputString += "},\n"
-    outputString += "name: '" + node.info[0] + "',\n"
+    outputString += "hovertext: '" + boxText + "',\n"
+    outputString += "hoverinfo: 'text',\n"
     outputString += "type: 'scatter',\n"
     outputString += "xaxis: 'x',\n"
     outputString += "yaxis: 'y3',\n"
@@ -258,7 +281,7 @@ count = 4
 dataString = "[trace1,trace2,trace3"
 for tree in toTrees(records):
     for node in tree.to_list():
-        htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header, count))
+        htmlFile.write(treeNodeToHtml(node, lmax, sync_time, header, count, x[-1]))
         dataString += ",trace%i" % count
         count += 1
 dataString += "]"
@@ -294,6 +317,7 @@ htmlFile.write("    'fixedrange': true,\n")
 htmlFile.write("    'side': 'left',\n")
 htmlFile.write("    },\n")
 htmlFile.write("  'hovermode' : 'closest',\n")
+htmlFile.write("  'hoverdistance' : 100,\n")
 htmlFile.write("  'legend': {\n")
 htmlFile.write("    'x' : 0,\n")
 htmlFile.write("    'y' : 1.1,\n")

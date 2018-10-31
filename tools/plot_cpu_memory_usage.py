@@ -78,15 +78,26 @@ def plot_tree_node(ax, node, lmax, sync_time, header, scalarMap):
     ax.plot([x1, x1, x3, x2, x2], [y1, y2, y3, y2, y1], clip_on=False, color=colorVal, lw=1)
     ax.text(x3, y3, node.info[0], rotation=90.0, ha='center', va='top', color=colorVal)
 
-
+# Convert string to RGB color
+# This method is simple but does not guarantee uniqueness of the color.
+# It is however random enough for our purposes
 def stringToColor(string):
 
-    RGBint = hash(string)
-    blu =  RGBint & 255
-    grn = (RGBint >> 8) & 255
-    red = (RGBint >> 16) & 255
-    return "rgb(%i,%i,%i)" % (red,grn,blu)
+    red = 0
+    grn = 0
+    blu = 0
+    for i in range(0,len(string),3):
+        red += ord(string[i])
+    for i in range(1,len(string),3):
+        grn += ord(string[i])
+    for i in range(2,len(string),3):
+        blu += ord(string[i])
 
+    red %= 255
+    grn %= 255
+    blu %= 255
+
+    return [red,grn,blu,(red+grn+blu)/3.0]
 
 
 def treeNodeToHtml(node, lmax, sync_time, header, count, tot_time):
@@ -108,6 +119,7 @@ def treeNodeToHtml(node, lmax, sync_time, header, count, tot_time):
     percTot = dt * 100.0 / tot_time
     percRaw = rawTime * 100.0 / tot_time
 
+    # Create the text inside hover box
     boxText = node.info[0] + " : "
     if dt < 0.1:
         boxText += "%.1E" % dt
@@ -122,11 +134,12 @@ def treeNodeToHtml(node, lmax, sync_time, header, count, tot_time):
         for ch in node.children:
             boxText += "  - " + ch.info[0] + "<br>"
 
+    # Create trace
     outputString = "trace%i = {\n" % count
     outputString += "x: [%f, %f, %f, %f, %f],\n" % (x0, x0, x2, x1, x1)
     outputString += "y: [%f, %f, %f, %f, %f],\n" % (y0, y1, y1, y1, y0)
     outputString += "fill: 'tozeroy',\n"
-    outputString += "fillcolor: '" + color + "',\n"
+    outputString += "fillcolor: 'rgb(%i,%i,%i)',\n" % (color[0],color[1],color[2])
     outputString += "line: {\n"
     outputString += "color: '#000000',\n"
     outputString += "dash: 'solid',\n"
@@ -137,7 +150,12 @@ def treeNodeToHtml(node, lmax, sync_time, header, count, tot_time):
     outputString += "text: ['', '', '%s', '', ''],\n" % node.info[0]
     outputString += "textposition: 'top',\n"
     outputString += "textfont: {\n"
-    outputString += "  color: '#ffffff',\n"
+    if color[3] > 180:
+        # If the background color is too bright, make the font color black
+        outputString += "  color: '#000000',\n"
+    else:
+        # Default font color is white
+        outputString += "  color: '#ffffff',\n"
     outputString += "},\n"
     outputString += "hovertext: '" + boxText + "',\n"
     outputString += "hoverinfo: 'text',\n"

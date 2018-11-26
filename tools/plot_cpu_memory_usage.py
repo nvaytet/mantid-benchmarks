@@ -179,7 +179,7 @@ file_basename = sys.argv[1]
 # Read in algorithm timing log and build tree
 header, records = fromFile(file_basename+".out")
 records = [x for x in records if x["finish"] - x["start"] > 1.0e8]
-header = int(header.split(':')[1])
+header = int(header.split(' ')[1])
 # Find maximum level in all trees
 lmax = 0
 for tree in toTrees(records):

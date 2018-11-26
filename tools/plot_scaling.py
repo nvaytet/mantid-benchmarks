@@ -15,7 +15,7 @@ for i in nthreads_list:
     # print(i)
     # Read in algorithm timing log and build tree
     header, records = fromFile(basename+str(i)+".out")
-    header = int(header.split(':')[1])
+    header = int(header.split(' ')[1])
     # records = [x for x in records if x["finish"] - x["start"] > 100000000]
     for tree in toTrees(records):
         # Compute raw durations
